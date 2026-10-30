@@ -2,7 +2,7 @@
   "name": "tokenmin-vscode",
   "displayName": "TokenMin — AI Context & Prompt Optimizer",
   "description": "Minimize token usage and slash LLM API costs directly inside VS Code",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "publisher": "tokenmin",
   "engines": {
     "vscode": "^1.85.0"
@@ -18,6 +18,18 @@
     "onCommand:tokenmin.copyOptimizedForAI"
   ],
   "main": "./dist/extension.js",
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/vscode": "^1.85.0",
+    "@vscode/vsce": "^2.24.0",
+    "typescript": "^5.3.3"
+  },
   "contributes": {
     "commands": [
       {
@@ -79,4 +91,3 @@
     }
   }
 }
-
