@@ -4,6 +4,11 @@
   "description": "Minimize token usage and slash LLM API costs directly inside VS Code",
   "version": "0.2.0",
   "publisher": "tokenmin",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Jashraj21/tokenmin.git"
+  },
+  "license": "MIT",
   "engines": {
     "vscode": "^1.85.0"
   },
