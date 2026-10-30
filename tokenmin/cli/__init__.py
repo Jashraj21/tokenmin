@@ -2,3 +2,4 @@
 from tokenmin.cli.main import main
 
 __all__ = ["main"]
+

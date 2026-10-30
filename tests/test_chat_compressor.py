@@ -44,3 +44,4 @@ Assistant: def factorial(n): return 1 if n <= 1 else n * factorial(n - 1)
 
     assert result.metrics.saved_tokens >= 0
     assert "def factorial(n):" in result.text
+

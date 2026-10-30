@@ -8,11 +8,17 @@ from typing import Any, Dict, Optional, Union
 
 from tokenmin.detector import detect_content_type
 from tokenmin.models import CompressionLevel, ContentType, MinifyResult
+from tokenmin.models_registry import resolve_model
 from tokenmin.strategies.base import BaseCompressor
+from tokenmin.strategies.cache import CacheOptimizer
 from tokenmin.strategies.chat import ChatCompressor
 from tokenmin.strategies.code import GenericCodeCompressor, PythonCompressor
 from tokenmin.strategies.data import JsonCompressor, LogCompressor
-from tokenmin.strategies.text import MarkdownCompressor, PromptCompressor
+from tokenmin.strategies.text import (
+    MarkdownCompressor,
+    PromptCompressor,
+    ReasoningCompressor,
+)
 
 
 class MinimizerPipeline:
@@ -23,6 +29,8 @@ class MinimizerPipeline:
             "python": PythonCompressor(),
             "code": GenericCodeCompressor(),
             "prompt": PromptCompressor(),
+            "reasoning": ReasoningCompressor(),
+            "cache": CacheOptimizer(),
             "text": PromptCompressor(),
             "markdown": MarkdownCompressor(),
             "json": JsonCompressor(),
@@ -41,22 +49,15 @@ class MinimizerPipeline:
         level: Union[CompressionLevel, str] = CompressionLevel.MODERATE,
         target_tokens: Optional[int] = None,
         model: str = "gpt-4o",
+        reasoning_mode: bool = False,
+        cache_friendly: bool = False,
         **kwargs: Any
     ) -> MinifyResult:
         """
         Compress text using the most appropriate or specified strategy.
-
-        Args:
-            text: Input string to compress.
-            content_type: Content type (e.g. auto, prompt, python, code, json, log, chat, markdown).
-            level: Compression aggressiveness (conservative, moderate, aggressive).
-            target_tokens: Optional hard token cap.
-            model: Target LLM model name for accurate token counting.
-            **kwargs: Additional strategy-specific arguments (e.g., skeleton=True for python).
-
-        Returns:
-            MinifyResult containing compressed text and detailed metrics.
         """
+        model_info = resolve_model(model)
+
         # Normalize level
         if isinstance(level, str):
             level = CompressionLevel(level.lower())
@@ -70,21 +71,28 @@ class MinimizerPipeline:
         else:
             c_type = content_type
 
+        # 1. If AUTO, detect content format first
         if c_type == ContentType.AUTO:
-            detected = detect_content_type(text)
-            c_type = detected
+            c_type = detect_content_type(text)
 
-        strategy_key = c_type.value.lower()
+        # 2. Route to specialized strategy
+        if cache_friendly or c_type == ContentType.CACHE:
+            strategy_key = "cache"
+        elif reasoning_mode or c_type == ContentType.REASONING or (model_info.is_reasoning_model and c_type in (ContentType.PROMPT, ContentType.TEXT)):
+            strategy_key = "reasoning"
+        else:
+            strategy_key = c_type.value.lower()
+
         compressor = self.compressors.get(strategy_key, self.compressors["prompt"])
 
         result = compressor.compress(
             text,
             level=level,
             target_tokens=target_tokens,
-            model=model,
+            model=model_info.name,
             **kwargs
         )
-        result.content_type = c_type.value
+        result.content_type = strategy_key
         return result
 
 
@@ -98,6 +106,8 @@ def minimize(
     level: Union[CompressionLevel, str] = CompressionLevel.MODERATE,
     target_tokens: Optional[int] = None,
     model: str = "gpt-4o",
+    reasoning_mode: bool = False,
+    cache_friendly: bool = False,
     **kwargs: Any
 ) -> MinifyResult:
     """Convenience function to minimize text using the default pipeline."""
@@ -107,5 +117,7 @@ def minimize(
         level=level,
         target_tokens=target_tokens,
         model=model,
+        reasoning_mode=reasoning_mode,
+        cache_friendly=cache_friendly,
         **kwargs
     )

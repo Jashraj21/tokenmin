@@ -4,3 +4,4 @@ In order to achieve high performance, please note that you should consider using
 At this point in time, take into consideration that the database is PostgreSQL.
 In the event that any network timeout happens, ensure that you implement exponential backoff retries.
 As well as that, feel free to suggest any caching strategy prior to sending queries.
+

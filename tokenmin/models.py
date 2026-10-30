@@ -1,11 +1,13 @@
 """
-Data models and configurations for TokenMin.
+Data models, statistics, and configuration for TokenMin.
 """
 from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, List, Optional
+
+from tokenmin.models_registry import LATEST_MODELS, ModelInfo, resolve_model
 
 
 class CompressionLevel(str, Enum):
@@ -20,6 +22,8 @@ class ContentType(str, Enum):
     AUTO = "auto"
     TEXT = "text"
     PROMPT = "prompt"
+    REASONING = "reasoning"    # Optimized for o1, o3-mini, DeepSeek-R1
+    CACHE = "cache"            # Optimized for prompt caching (Claude, Gemini, GPT-4o)
     PYTHON = "python"
     CODE = "code"
     JSON = "json"
@@ -28,15 +32,9 @@ class ContentType(str, Enum):
     MARKDOWN = "markdown"
 
 
-# Estimated input pricing per 1,000,000 tokens (USD) as of standard LLM pricing
+# Canonical price map per 1M tokens
 MODEL_INPUT_PRICES_PER_M: Dict[str, float] = {
-    "gpt-4o": 2.50,
-    "gpt-4o-mini": 0.15,
-    "claude-3-5-sonnet": 3.00,
-    "claude-3-haiku": 0.25,
-    "gemini-1.5-pro": 1.25,
-    "gemini-1.5-flash": 0.075,
-    "gemini-2.0-flash": 0.10,
+    m.name: m.input_price_per_m for m in LATEST_MODELS.values()
 }
 
 
@@ -49,6 +47,10 @@ class TokenStats:
     minimized_chars: int
     elapsed_ms: float = 0.0
     model: str = "gpt-4o"
+
+    @property
+    def model_info(self) -> ModelInfo:
+        return resolve_model(self.model)
 
     @property
     def saved_tokens(self) -> int:
@@ -76,11 +78,25 @@ class TokenStats:
         saved = max(0, self.original_chars - self.minimized_chars)
         return round((saved / self.original_chars) * 100.0, 2)
 
-    def estimated_savings(self, requests_count: int = 1_000_000) -> Dict[str, float]:
+    def context_usage_percentage(self, model: Optional[str] = None) -> float:
+        """Percentage of the model's total context window occupied by the minimized content."""
+        target_model = resolve_model(model or self.model)
+        if target_model.context_window <= 0:
+            return 0.0
+        return round((self.minimized_tokens / target_model.context_window) * 100.0, 4)
+
+    def estimated_savings(
+        self,
+        requests_count: int = 1_000_000,
+        cached_rate: bool = False
+    ) -> Dict[str, float]:
         """Estimate dollars saved across major models for a given number of API calls."""
         savings: Dict[str, float] = {}
-        for model_name, price_per_m in MODEL_INPUT_PRICES_PER_M.items():
-            saved_dollars = (self.saved_tokens * requests_count / 1_000_000.0) * price_per_m
+        for model_name, info in LATEST_MODELS.items():
+            rate = info.cached_input_price_per_m if cached_rate else info.input_price_per_m
+            # Account for model tokenizer calibration ratio
+            calibrated_saved = self.saved_tokens * info.tokenizer_calibration
+            saved_dollars = (calibrated_saved * requests_count / 1_000_000.0) * rate
             savings[model_name] = round(saved_dollars, 4)
         return savings
 
@@ -89,7 +105,7 @@ class TokenStats:
         return (
             f"Tokens: {self.original_tokens} -> {self.minimized_tokens} "
             f"(-{self.saved_tokens} tokens, {self.reduction_percentage}% reduction) "
-            f"in {self.elapsed_ms:.2f}ms"
+            f"in {self.elapsed_ms:.2f}ms [{self.model}]"
         )
 
 

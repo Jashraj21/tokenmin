@@ -1,10 +1,13 @@
 """
-Tokenizer abstraction supporting tiktoken and calibrated multi-model counting.
+Tokenizer abstraction supporting tiktoken, calibrated counting for latest models,
+and context window limit validation.
 """
 from __future__ import annotations
 
 import re
 from typing import List, Optional
+
+from tokenmin.models_registry import ModelInfo, resolve_model
 
 try:
     import tiktoken
@@ -28,7 +31,7 @@ def _simple_heuristic_count(text: str) -> int:
 
 
 class Tokenizer:
-    """Multi-model token counter and text truncator."""
+    """Multi-model token counter and text truncator calibrated for latest AI models."""
 
     _encoders: dict = {}
 
@@ -48,37 +51,36 @@ class Tokenizer:
 
     @classmethod
     def count(cls, text: str, model: str = "gpt-4o") -> int:
-        """Count tokens in text for a given model target."""
+        """
+        Count tokens in text calibrated for the target model.
+        Supports OpenAI (o1, o3-mini, GPT-4o), Claude 3.5, Gemini 2.0, DeepSeek V3/R1, Llama 3.3.
+        """
         if not text:
             return 0
 
-        model_lower = model.lower()
+        info = resolve_model(model)
+        model_name = info.name
 
         if _TIKTOKEN_AVAILABLE:
-            if "gpt-4o" in model_lower or "o1" in model_lower or "o3" in model_lower:
-                enc = cls._get_tiktoken_encoding("o200k_base")
-            elif "gpt-4" in model_lower or "gpt-3.5" in model_lower:
-                enc = cls._get_tiktoken_encoding("cl100k_base")
-            else:
+            # Modern frontier models use o200k or equivalent large vocabularies
+            if any(k in model_name for k in ("gpt-4o", "o1", "o3", "gemini", "claude", "deepseek", "llama")):
                 enc = cls._get_tiktoken_encoding("o200k_base") or cls._get_tiktoken_encoding("cl100k_base")
+            else:
+                enc = cls._get_tiktoken_encoding("cl100k_base") or cls._get_tiktoken_encoding("o200k_base")
 
             if enc is not None:
                 raw_count = len(enc.encode(text, disallowed_special=()))
+                calibrated = int(raw_count * info.tokenizer_calibration)
+                return max(1, calibrated)
 
-                if "claude" in model_lower:
-                    return max(1, int(raw_count * 1.05))
-                elif "gemini" in model_lower:
-                    return max(1, int(raw_count * 0.98))
-                elif "llama" in model_lower:
-                    return max(1, int(raw_count * 1.04))
-                return raw_count
-
+        # Fallback heuristic
         raw = _simple_heuristic_count(text)
-        if "claude" in model_lower:
-            return max(1, int(raw * 1.05))
-        elif "gemini" in model_lower:
-            return max(1, int(raw * 0.98))
-        return raw
+        return max(1, int(raw * info.tokenizer_calibration))
+
+    @classmethod
+    def get_context_window(cls, model: str = "gpt-4o") -> int:
+        """Return the maximum context window in tokens for the model."""
+        return resolve_model(model).context_window
 
     @classmethod
     def truncate_to_budget(
@@ -107,7 +109,6 @@ class Tokenizer:
                     else:
                         token_ids = token_ids[:max_tokens]
 
-                    # Step back slightly if subword re-encoding at the boundary exceeded max_tokens
                     decoded = enc.decode(token_ids)
                     while token_ids and cls.count(decoded, model=model) > max_tokens:
                         token_ids = token_ids[1:] if from_end else token_ids[:-1]
@@ -115,7 +116,7 @@ class Tokenizer:
 
                     return decoded
 
-        # Fallback line/word binary search
+        # Fallback binary search over lines
         lines = text.splitlines(keepends=True)
         if not lines:
             return text[:max_tokens * 3]

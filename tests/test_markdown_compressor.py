@@ -29,3 +29,4 @@ def test_horizontal_rules():
 
     assert "---" in result.text
     assert "-------------------------------" not in result.text
+

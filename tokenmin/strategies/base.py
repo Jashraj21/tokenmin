@@ -96,3 +96,4 @@ class BaseCompressor(ABC):
             metrics=stats,
             applied_steps=applied_steps
         )
+

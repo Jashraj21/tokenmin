@@ -45,3 +45,4 @@ def test_tokenizer_truncate_from_end():
     trunc_tokens = count_tokens(truncated)
     assert trunc_tokens <= budget
     assert "Recent" in truncated
+

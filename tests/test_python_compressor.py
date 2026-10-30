@@ -77,3 +77,4 @@ def test_python_syntax_error_fallback():
     result = compressor.compress(broken_code)
 
     assert "def broken" in result.text
+

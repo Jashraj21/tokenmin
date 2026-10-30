@@ -24,3 +24,4 @@ def test_cli_minimize_stdin():
     assert result.returncode == 0
     assert "Please kindly" not in result.stdout
     assert "reduce tokens" in result.stdout
+

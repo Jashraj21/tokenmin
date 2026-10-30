@@ -66,3 +66,4 @@ class AuthTokenManager:
         # Append token to revoked list
         if token not in self.revoked_tokens:
             self.revoked_tokens.append(token)
+

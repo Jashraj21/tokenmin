@@ -56,3 +56,4 @@ def test_html_comments():
     assert "<!-- Header component -->" not in result.text
     assert "<!-- Navigation bar -->" not in result.text
     assert "<h1>Welcome</h1>" in result.text
+

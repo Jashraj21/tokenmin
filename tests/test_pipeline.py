@@ -40,3 +40,4 @@ def test_pipeline_diff_generation():
 
     diff_str = result.diff()
     assert isinstance(diff_str, str)
+

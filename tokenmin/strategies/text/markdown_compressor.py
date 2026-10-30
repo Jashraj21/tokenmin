@@ -95,3 +95,4 @@ class MarkdownCompressor(BaseCompressor):
         applied_steps.append("collapse_blank_lines")
 
         return cleaned.strip(), applied_steps
+

@@ -43,3 +43,4 @@ def test_whitespace_and_punctuation_cleanup():
     assert "spaces," in result.text
     assert "???" not in result.text
     assert "!!!" not in result.text
+

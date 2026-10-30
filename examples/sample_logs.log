@@ -7,3 +7,4 @@
 2026-10-30T14:00:06.789012Z [WARN] Upstream service payment-vault unreachable. Retrying...
 2026-10-30T14:00:07.890123Z [INFO] Successfully established TLS connection to payment-vault
 2026-10-30T14:00:08.901234Z [INFO] Healthcheck probe passed [status=OK]
+

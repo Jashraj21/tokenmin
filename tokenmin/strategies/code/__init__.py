@@ -3,3 +3,4 @@ from tokenmin.strategies.code.generic_code_compressor import GenericCodeCompress
 from tokenmin.strategies.code.python_compressor import PythonCompressor
 
 __all__ = ["PythonCompressor", "GenericCodeCompressor"]
+

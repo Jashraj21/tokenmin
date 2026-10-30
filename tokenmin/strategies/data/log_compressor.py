@@ -92,3 +92,4 @@ class LogCompressor(BaseCompressor):
         joined = re.sub(r"\n\s*\n\s*\n+", "\n\n", joined)
 
         return joined.strip(), applied_steps
+

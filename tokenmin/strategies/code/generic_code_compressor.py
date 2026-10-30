@@ -133,3 +133,4 @@ class GenericCodeCompressor(BaseCompressor):
             applied_steps.append("condense_indentation")
 
         return code, applied_steps
+

@@ -126,3 +126,4 @@ class ChatCompressor(BaseCompressor):
         cleaned = re.sub(r"\n\s*\n\s*\n+", "\n\n", text).strip()
         applied_steps.append("normalize_whitespace")
         return cleaned, applied_steps
+

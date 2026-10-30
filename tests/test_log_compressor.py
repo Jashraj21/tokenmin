@@ -17,3 +17,4 @@ def test_log_repeated_lines_collapsing():
     assert result.metrics.saved_tokens > 0
     assert "[Repeated 4x]" in result.text
     assert "Database connected successfully" in result.text
+

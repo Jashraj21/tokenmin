@@ -32,3 +32,4 @@ tokmin = "tokenmin.cli.main:main"
 
 [tool.setuptools.packages.find]
 include = ["tokenmin*"]
+

@@ -114,3 +114,4 @@ class JsonCompressor(BaseCompressor):
         applied_steps.append("compact_json_serialization")
 
         return minified, applied_steps
+
