@@ -1,0 +1,81 @@
+{
+  "name": "tokenmin-vscode",
+  "displayName": "TokenMin — AI Context & Prompt Optimizer",
+  "description": "Minimize token usage and slash LLM API costs directly inside VS Code",
+  "version": "0.1.0",
+  "publisher": "tokenmin",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "AI",
+    "Machine Learning",
+    "Programming Languages"
+  ],
+  "activationEvents": [
+    "onCommand:tokenmin.minimizeSelection",
+    "onCommand:tokenmin.skeletonizeActiveFile",
+    "onCommand:tokenmin.copyOptimizedForAI"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "tokenmin.minimizeSelection",
+        "title": "TokenMin: Minimize Selected Code/Text"
+      },
+      {
+        "command": "tokenmin.skeletonizeActiveFile",
+        "title": "TokenMin: Generate AST Interface Skeleton (for AI Context)"
+      },
+      {
+        "command": "tokenmin.copyOptimizedForAI",
+        "title": "TokenMin: Copy Minimized to Clipboard for Copilot/ChatGPT"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "tokenmin.minimizeSelection",
+          "group": "tokenmin@1",
+          "when": "editorHasSelection"
+        },
+        {
+          "command": "tokenmin.copyOptimizedForAI",
+          "group": "tokenmin@2",
+          "when": "editorHasSelection"
+        },
+        {
+          "command": "tokenmin.skeletonizeActiveFile",
+          "group": "tokenmin@3"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "TokenMin",
+      "properties": {
+        "tokenmin.model": {
+          "type": "string",
+          "default": "gpt-4o",
+          "enum": [
+            "gpt-4o",
+            "o3-mini",
+            "o1",
+            "claude-3-5-sonnet",
+            "gemini-2.0-flash",
+            "gemini-4",
+            "gpt-6",
+            "deepseek-r1"
+          ],
+          "description": "Target AI model for token estimation and prompt optimization"
+        },
+        "tokenmin.level": {
+          "type": "string",
+          "default": "moderate",
+          "enum": ["conservative", "moderate", "aggressive"],
+          "description": "Optimization aggressiveness level"
+        }
+      }
+    }
+  }
+}
