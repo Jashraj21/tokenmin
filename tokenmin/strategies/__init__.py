@@ -3,7 +3,11 @@ from tokenmin.strategies.base import BaseCompressor
 from tokenmin.strategies.cache import CacheOptimizer
 from tokenmin.strategies.chat import ChatCompressor
 from tokenmin.strategies.code import GenericCodeCompressor, PythonCompressor
-from tokenmin.strategies.data import JsonCompressor, LogCompressor
+from tokenmin.strategies.data import (
+    DeltaCompressor,
+    JsonCompressor,
+    LogCompressor,
+)
 from tokenmin.strategies.text import (
     MarkdownCompressor,
     PromptCompressor,
@@ -19,6 +23,7 @@ __all__ = [
     "MarkdownCompressor",
     "JsonCompressor",
     "LogCompressor",
+    "DeltaCompressor",
     "ChatCompressor",
     "CacheOptimizer",
 ]

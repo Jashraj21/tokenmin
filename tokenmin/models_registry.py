@@ -1,7 +1,7 @@
 """
-Registry of latest frontier AI models with context window limits, pricing, and token calibration.
-Includes OpenAI (GPT-4o, o1, o3-mini), Anthropic (Claude 3.5 Sonnet/Haiku), Google (Gemini 2.0 Flash/Pro),
-DeepSeek (V3, R1), and Meta (Llama 3.3).
+Registry of frontier and next-generation AI models with context window limits, pricing, and token calibration.
+Includes OpenAI (GPT-6, o3-mini, o1, GPT-4o), Anthropic (Claude 5 Fable, Claude 3.5 Sonnet/Haiku),
+Google (Gemini 4, Project Astra, Gemini 2.0 Flash, Gemini 1.5 Pro), DeepSeek (V3, R1), and Meta (Llama 3.3).
 """
 from __future__ import annotations
 
@@ -24,9 +24,83 @@ class ModelInfo:
     notes: str = ""
 
 
-# Registry of the latest models
+# Registry of supported models including next-gen frontier architectures
 LATEST_MODELS: Dict[str, ModelInfo] = {
-    # OpenAI
+    # ── Next-Generation & Frontier Models ───────────────────────────────────
+    "gpt-6": ModelInfo(
+        name="gpt-6",
+        display_name="OpenAI GPT-6 (Omni-Reasoning)",
+        provider="OpenAI",
+        context_window=1_000_000,
+        input_price_per_m=4.00,
+        cached_input_price_per_m=1.00,
+        tokenizer_calibration=1.0,
+        is_reasoning_model=True,
+        supports_caching=True,
+        notes="Next-gen autonomous multi-agent reasoning, 1M context"
+    ),
+    "gemini-4": ModelInfo(
+        name="gemini-4",
+        display_name="Google Gemini 4 (Ultra / Flash)",
+        provider="Google",
+        context_window=10_000_000,
+        input_price_per_m=0.40,
+        cached_input_price_per_m=0.04,
+        tokenizer_calibration=0.94,
+        is_reasoning_model=True,
+        supports_caching=True,
+        notes="Ultra-long 10M context window with cross-modal stream reasoning"
+    ),
+    "gemini-astra": ModelInfo(
+        name="gemini-astra",
+        display_name="Google Project Astra (Realtime Multimodal)",
+        provider="Google",
+        context_window=2_000_000,
+        input_price_per_m=0.15,
+        cached_input_price_per_m=0.03,
+        tokenizer_calibration=0.95,
+        is_reasoning_model=False,
+        supports_caching=True,
+        notes="Real-time camera, screen & audio streaming perceptual agent"
+    ),
+    "claude-5-fable": ModelInfo(
+        name="claude-5-fable",
+        display_name="Claude 5 Fable (Anthropic)",
+        provider="Anthropic",
+        context_window=500_000,
+        input_price_per_m=3.50,
+        cached_input_price_per_m=0.35,
+        tokenizer_calibration=1.05,
+        is_reasoning_model=True,
+        supports_caching=True,
+        notes="Deep narrative synthesis, multi-layer scratchpad & constitutional reasoning"
+    ),
+
+    # ── Current Flagship & Frontier Models ──────────────────────────────────
+    "o3-mini": ModelInfo(
+        name="o3-mini",
+        display_name="OpenAI o3-mini",
+        provider="OpenAI",
+        context_window=200_000,
+        input_price_per_m=1.10,
+        cached_input_price_per_m=0.55,
+        tokenizer_calibration=1.0,
+        is_reasoning_model=True,
+        supports_caching=True,
+        notes="Fast STEM & coding reasoning model"
+    ),
+    "o1": ModelInfo(
+        name="o1",
+        display_name="OpenAI o1",
+        provider="OpenAI",
+        context_window=200_000,
+        input_price_per_m=15.00,
+        cached_input_price_per_m=7.50,
+        tokenizer_calibration=1.0,
+        is_reasoning_model=True,
+        supports_caching=True,
+        notes="High-depth reasoning model"
+    ),
     "gpt-4o": ModelInfo(
         name="gpt-4o",
         display_name="OpenAI GPT-4o",
@@ -48,30 +122,6 @@ LATEST_MODELS: Dict[str, ModelInfo] = {
         tokenizer_calibration=1.0,
         is_reasoning_model=False,
         supports_caching=True,
-    ),
-    "o1": ModelInfo(
-        name="o1",
-        display_name="OpenAI o1",
-        provider="OpenAI",
-        context_window=200_000,
-        input_price_per_m=15.00,
-        cached_input_price_per_m=7.50,
-        tokenizer_calibration=1.0,
-        is_reasoning_model=True,
-        supports_caching=True,
-        notes="High-depth reasoning model"
-    ),
-    "o3-mini": ModelInfo(
-        name="o3-mini",
-        display_name="OpenAI o3-mini",
-        provider="OpenAI",
-        context_window=200_000,
-        input_price_per_m=1.10,
-        cached_input_price_per_m=0.55,
-        tokenizer_calibration=1.0,
-        is_reasoning_model=True,
-        supports_caching=True,
-        notes="Fast STEM & coding reasoning model"
     ),
 
     # Anthropic
@@ -215,14 +265,24 @@ LATEST_MODELS: Dict[str, ModelInfo] = {
 
 def resolve_model(query: str) -> ModelInfo:
     """
-    Resolve model string to ModelInfo with fuzzy matching for version abbreviations.
-    E.g., 'sonnet', 'claude-3.5', 'r1', 'o3', 'flash-2.0', 'gemini' all resolve correctly.
+    Resolve model string to ModelInfo with fuzzy matching for version abbreviations and future releases.
+    E.g. 'gemini 4', 'gpt 6', 'astra', 'claude fable 5' all resolve correctly.
     """
     q = query.lower().strip()
     if q in LATEST_MODELS:
         return LATEST_MODELS[q]
 
-    # Alias / fuzzy mappings
+    # Future / Next-Gen models
+    if "gemini-4" in q or "gemini 4" in q or "gemini4" in q:
+        return LATEST_MODELS["gemini-4"]
+    if "astra" in q or "project-astra" in q or "project astra" in q:
+        return LATEST_MODELS["gemini-astra"]
+    if "gpt-6" in q or "gpt 6" in q or "gpt6" in q:
+        return LATEST_MODELS["gpt-6"]
+    if "fable" in q or "claude-5" in q or "claude 5" in q:
+        return LATEST_MODELS["claude-5-fable"]
+
+    # Reasoning & Frontier
     if "o3" in q:
         return LATEST_MODELS["o3-mini"]
     if "o1" in q:

@@ -4,6 +4,7 @@ Routes content to the optimal strategy, auto-detects formats, and applies budget
 """
 from __future__ import annotations
 
+import re
 from typing import Any, Dict, Optional, Union
 
 from tokenmin.detector import detect_content_type
@@ -13,7 +14,11 @@ from tokenmin.strategies.base import BaseCompressor
 from tokenmin.strategies.cache import CacheOptimizer
 from tokenmin.strategies.chat import ChatCompressor
 from tokenmin.strategies.code import GenericCodeCompressor, PythonCompressor
-from tokenmin.strategies.data import JsonCompressor, LogCompressor
+from tokenmin.strategies.data import (
+    DeltaCompressor,
+    JsonCompressor,
+    LogCompressor,
+)
 from tokenmin.strategies.text import (
     MarkdownCompressor,
     PromptCompressor,
@@ -31,6 +36,7 @@ class MinimizerPipeline:
             "prompt": PromptCompressor(),
             "reasoning": ReasoningCompressor(),
             "cache": CacheOptimizer(),
+            "delta": DeltaCompressor(),
             "text": PromptCompressor(),
             "markdown": MarkdownCompressor(),
             "json": JsonCompressor(),
@@ -71,17 +77,21 @@ class MinimizerPipeline:
         else:
             c_type = content_type
 
-        # 1. If AUTO, detect content format first
+        # 1. If AUTO, check for streaming delta frames (Astra/Gemini 4) or detect content format
         if c_type == ContentType.AUTO:
-            c_type = detect_content_type(text)
-
-        # 2. Route to specialized strategy
-        if cache_friendly or c_type == ContentType.CACHE:
-            strategy_key = "cache"
-        elif reasoning_mode or c_type == ContentType.REASONING or (model_info.is_reasoning_model and c_type in (ContentType.PROMPT, ContentType.TEXT)):
-            strategy_key = "reasoning"
+            if re.search(r"^\[(?:Frame\s+\d+|\d{2}:\d{2})\]", text.strip(), re.MULTILINE):
+                strategy_key = "delta"
+            else:
+                c_type = detect_content_type(text)
+                strategy_key = c_type.value.lower()
         else:
             strategy_key = c_type.value.lower()
+
+        # 2. Route specialized modes
+        if cache_friendly or c_type == ContentType.CACHE:
+            strategy_key = "cache"
+        elif reasoning_mode or c_type == ContentType.REASONING or (model_info.is_reasoning_model and strategy_key in ("prompt", "text")):
+            strategy_key = "reasoning"
 
         compressor = self.compressors.get(strategy_key, self.compressors["prompt"])
 

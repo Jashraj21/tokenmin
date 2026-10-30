@@ -95,3 +95,4 @@ class CacheOptimizer(BaseCompressor):
         stable, steps = _strip_cache_busting_artifacts(text)
         applied_steps.extend(steps)
         return stable.strip(), applied_steps
+

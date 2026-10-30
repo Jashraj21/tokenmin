@@ -1,0 +1,8 @@
+[Frame 101] Camera: Kitchen counter. Object: Red mug at (x=120, y=240).
+[Frame 102] Camera: Kitchen counter. Object: Red mug at (x=120, y=240).
+[Frame 103] Camera: Kitchen counter. Object: Red mug at (x=120, y=240).
+[Frame 104] Camera: Kitchen counter. Object: Red mug at (x=120, y=240).
+[Frame 105] Camera: Kitchen counter. User hand reaches for Red mug.
+[pause 0.2s] [pause 0.5s] User voice: Astra, where did I leave my keys?
+[Frame 106] Screen: Display showing calendar at 10:00 AM.
+[Frame 107] Screen: Display showing calendar at 10:00 AM.

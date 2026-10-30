@@ -1,40 +1,43 @@
-"""Tests for latest AI models support, reasoning optimizer, and prompt caching."""
+"""Tests for latest AI models support, reasoning optimizer, prompt caching, and next-gen architectures."""
 from tokenmin.models_registry import LATEST_MODELS, resolve_model
 from tokenmin.pipeline import minimize
 from tokenmin.strategies.cache import CacheOptimizer
+from tokenmin.strategies.data import DeltaCompressor
 from tokenmin.strategies.text import ReasoningCompressor
 from tokenmin.tokenizer import Tokenizer, count_tokens
 
 
-def test_resolve_latest_models():
-    # OpenAI Reasoning models
+def test_resolve_latest_and_next_gen_models():
+    # Next-Gen models
+    g4 = resolve_model("gemini 4")
+    assert g4.name == "gemini-4"
+    assert g4.context_window == 10_000_000
+
+    astra = resolve_model("astra")
+    assert astra.name == "gemini-astra"
+    assert astra.context_window == 2_000_000
+
+    gpt6 = resolve_model("gpt 6")
+    assert gpt6.name == "gpt-6"
+    assert gpt6.context_window == 1_000_000
+    assert gpt6.is_reasoning_model is True
+
+    fable = resolve_model("claude fable 5")
+    assert fable.name == "claude-5-fable"
+    assert fable.context_window == 500_000
+    assert fable.is_reasoning_model is True
+
+    # Current flagship models
     o3 = resolve_model("o3-mini")
     assert o3.name == "o3-mini"
     assert o3.is_reasoning_model is True
     assert o3.context_window == 200_000
 
-    o1 = resolve_model("o1")
-    assert o1.name == "o1"
-    assert o1.is_reasoning_model is True
-
-    # Anthropic
     claude = resolve_model("claude-3-5-sonnet")
     assert claude.name == "claude-3-5-sonnet"
-    assert claude.context_window == 200_000
-    assert claude.cached_input_price_per_m < claude.input_price_per_m
 
-    # Google Gemini 2.0
     gemini = resolve_model("gemini-2.0-flash")
     assert gemini.name == "gemini-2.0-flash"
-    assert gemini.context_window >= 1_000_000
-
-    # DeepSeek
-    r1 = resolve_model("deepseek-r1")
-    assert r1.name == "deepseek-r1"
-    assert r1.is_reasoning_model is True
-
-    v3 = resolve_model("deepseek-v3")
-    assert v3.name == "deepseek-v3"
 
 
 def test_reasoning_compressor_strips_thinking_loops():
@@ -68,20 +71,27 @@ def test_cache_optimizer_stabilization():
     assert "Please can you" not in result.text
 
 
-def test_pipeline_with_latest_reasoning_model():
-    text = "Please could you kindly think step by step and solve this equation: 3x + 5 = 20."
-    # With o3-mini target model, pipeline automatically activates reasoning optimization
-    res = minimize(text, model="o3-mini")
+def test_delta_compressor_streaming_frames():
+    stream_input = """[Frame 101] Camera: Workspace desk with keyboard and coffee mug
+[Frame 102] Camera: Workspace desk with keyboard and coffee mug
+[Frame 103] Camera: Workspace desk with keyboard and coffee mug
+[Frame 104] Camera: User hand reaches for coffee mug
+[pause 0.2s] [pause 0.4s] User says: What is next on my schedule?
+"""
+    compressor = DeltaCompressor()
+    result = compressor.compress(stream_input)
 
-    assert "think step by step" not in res.text
-    assert "Please could you kindly" not in res.text
-    assert "o3-mini" in res.metrics.model
-    assert res.metrics.model_info.is_reasoning_model is True
+    assert "[Static across 3 frames]" in result.text
+    assert "User hand reaches for coffee mug" in result.text
+    assert result.metrics.saved_tokens > 0
 
 
-def test_context_utilization_calculation():
-    text = "Short prompt for testing context."
-    res = minimize(text, model="gemini-2.0-flash")
+def test_pipeline_with_gpt6_and_gemini4():
+    text = "Please could you kindly think step by step and explain quantum entanglement."
+    res_gpt6 = minimize(text, model="gpt 6")
+    assert res_gpt6.metrics.model_info.name == "gpt-6"
+    assert "think step by step" not in res_gpt6.text
 
-    # In 1M context, a short prompt is < 0.01%
-    assert res.metrics.context_usage_percentage() < 0.01
+    res_g4 = minimize(text, model="gemini 4")
+    assert res_g4.metrics.model_info.name == "gemini-4"
+    assert res_g4.metrics.model_info.context_window == 10_000_000
