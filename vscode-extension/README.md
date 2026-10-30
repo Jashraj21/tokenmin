@@ -28,3 +28,4 @@ When terminal output or crash logs contain 100 repeated lines of errors or times
 | :--- | :--- | :--- | :--- |
 | `tokenmin.model` | `gpt-4o`, `o3-mini`, `o1`, `claude-3-5-sonnet`, `gemini-2.0-flash`, `gemini-4`, `gpt-6` | `gpt-4o` | Target model for token counting & optimization |
 | `tokenmin.level` | `conservative`, `moderate`, `aggressive` | `moderate` | Compression aggressiveness |
+
