@@ -1,0 +1,7 @@
+[
+  {"role": "system", "content": "You are a specialized code optimization assistant."},
+  {"role": "user", "content": "How do I optimize database connections in SQLAlchemy?"},
+  {"role": "assistant", "content": "In SQLAlchemy, optimizing database connections requires connection pooling via QueuePool, tuning pool_size, max_overflow, pool_timeout, and pool_recycle. Here is an extensive explanation with many details and background info on connection handshakes, TCP sockets, and connection recycling intervals... "},
+  {"role": "user", "content": "What is the recommended pool_size for a web app with 20 workers?"},
+  {"role": "assistant", "content": "For 20 web workers, you should configure pool_size=5 to 10 with max_overflow=10, ensuring your database max_connections parameter exceeds total workers multiplied by pool size."}
+]

@@ -1,0 +1,6 @@
+Please can you kindly act as a senior backend software engineer and help me write a Python service.
+I would like you to make sure that you write comprehensive docstrings and type annotations for all methods.
+In order to achieve high performance, please note that you should consider using asyncio due to the fact that our downstream APIs have variable latency.
+At this point in time, take into consideration that the database is PostgreSQL.
+In the event that any network timeout happens, ensure that you implement exponential backoff retries.
+As well as that, feel free to suggest any caching strategy prior to sending queries.

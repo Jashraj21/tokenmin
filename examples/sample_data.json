@@ -1,0 +1,42 @@
+[
+  {
+    "id": 1001,
+    "username": "sarah_connor",
+    "email": "sarah@cyberdyne.org",
+    "role": "admin",
+    "is_active": true,
+    "last_login": "2026-10-30T10:15:00Z",
+    "metadata": null,
+    "permissions": []
+  },
+  {
+    "id": 1002,
+    "username": "john_doe",
+    "email": "john@enterprise.com",
+    "role": "developer",
+    "is_active": true,
+    "last_login": "2026-10-29T18:42:11Z",
+    "metadata": null,
+    "permissions": []
+  },
+  {
+    "id": 1003,
+    "username": "alex_mercer",
+    "email": "alex@gentek.org",
+    "role": "analyst",
+    "is_active": false,
+    "last_login": "2026-09-12T04:20:00Z",
+    "metadata": null,
+    "permissions": []
+  },
+  {
+    "id": 1004,
+    "username": "elena_fisher",
+    "email": "elena@uncharted.net",
+    "role": "editor",
+    "is_active": true,
+    "last_login": "2026-10-30T14:10:00Z",
+    "metadata": null,
+    "permissions": []
+  }
+]
